@@ -1,6 +1,6 @@
 export const NavLinks = [
   {
-    path: '/',
+    path: '/dashboard',
     label: 'Dashboard',
     icon: ['fas','home']
   },

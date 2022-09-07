@@ -3,55 +3,81 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { createPinia } from 'pinia';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
+import VueAxios from 'vue-axios';
 
 /* eslint-disable */
 import { createApp, toRaw, unref } from 'vue';
 import App from './App.vue';
-import DashboardView from './components/DashboardView.vue'
+import LandingView from './components/LandingView.vue'
 
 const auth0 = createAuth0({
   domain: 'multihabit.us.auth0.com',
   client_id: 'BzwseLvP21EVclAL2DqYFOtS0Ij7z3OB',
   redirect_uri: process.env.VUE_APP_AUTH0_REDIRECT_URI,
-  useRefreshTokens: true,
-  cacheLocation: 'localstorage'
+  audience: 'https://multihabit.com/authorize'
 });
 
 const pinia = createPinia();
-library.add(faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear);
+library.add(faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed);
 
 const routes = [
   {
     path: '/',
+    name: 'Landing',
+    component: LandingView,
+    meta: {
+      showNav: false
+    }
+  },
+  {
+    path: '/dashboard',
     name: "Dashboard",
-    component: DashboardView,
-    beforeEnter: (_, __, next) => {
-      console.log("Nav Guard");
-      const isAuthenticated = unref(toRaw(auth0.isAuthenticated));
-      if(!isAuthenticated) next({name: "Login"});
-      else next();
+    component: () => import('@/components/DashboardView.vue'),
+    meta: {
+      showNav: true
     }
   },
   {
     path: '/login',
     name: "Login",
-    component: () => import('@/components/LoginView.vue')
+    component: () => import('@/components/LoginView.vue'),
+    meta: {
+      showNav: false
+    }
   },
   {
     path: '/statistics',
     name: 'Statistics',
-    component: () => import('@/components/StatisticsView.vue')
+    component: () => import('@/components/StatisticsView.vue'),
+    meta: {
+      showNav: true
+    }
   },
   {
     path: '/log',
     name: 'Log',
-    component: () => import('@/components/LogView.vue')
+    component: () => import('@/components/LogView.vue'),
+    meta: {
+      showNav: true
+    }
   },
   {
     path: '/leaderboard',
     name: 'leaderboard',
-    component: () => import('@/components/LeaderboardView.vue')
+    component: () => import('@/components/LeaderboardView.vue'),
+    meta: {
+      showNav: true
+    }
+  },
+  {
+    path: '/onboarding',
+    name: 'onboarding',
+    component: () => import('@/components/onboarding/OnboardingView.vue'),
+    meta: {
+      showNav: true
+    }
   }
 ]
 
@@ -60,9 +86,10 @@ const router = createRouter({
   routes,
 })
 
-createApp(App)
-  .use(router)
-  .use(pinia)
+const app = createApp(App).use(router);
+app.use(pinia)
+  .use(VueAxios,axios)
+  .provide('axios', app.config.globalProperties.axios)
   .use(auth0)
   .component('fa-icon',FontAwesomeIcon)
   .mount('#app')

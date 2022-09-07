@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="login">
     <header>
       <h1>Multihabit</h1>
       <h2>A Time-based Habit-Tracking App</h2> 
@@ -28,7 +28,15 @@ export default {
 }
 </script>
 
-<style scoped lang="sass">
-
+<style scoped lang="scss">
+#login{
+  align-self: center;
+  justify-self: center;
+  flex: 1 1 0;
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 3;
+}
 </style>
 

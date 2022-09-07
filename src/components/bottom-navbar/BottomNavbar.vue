@@ -23,9 +23,13 @@ import { NavLinks } from '@/helpers/navlinks';
 #bottom-navbar {
   position: fixed;
   bottom: 0;
-  height: 32px;
+  height: 64px;
   display: flex;
   width: 100%;
   background-color: var(--nav-background);
+  grid-column-start: 1;
+  grid-column-start: 3;
+  grid-row-start: 2;
+  grid-row-end: 3;
 }
 </style>

@@ -25,8 +25,12 @@ import { NavLinks } from '@/helpers/navlinks';
 aside {
   width: 300px;
   background-color: var(--nav-background);
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 1;
+  grid-row-end: 3;
 }
 </style>

@@ -29,7 +29,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 32px;
     color: rgba(240, 240, 240, 0.45);
   }
 

@@ -1,15 +1,23 @@
 <template>
   <mh-sidebar v-if="showSidebar" />
-  <router-view/>
+  <suspense>
+    <router-view :class="{
+      desktop: showSidebar,
+      mobile: showBottomNavBar
+    }"/>
+  </suspense>
   <bottom-navbar v-if="showBottomNavBar" />
 </template>
 
 <script>
+/* eslint-disable */
+import { unref, toRaw } from 'vue';
 import { debounce } from '@/helpers/debounce';
 import { useResponsiveStore } from '@/stores/responsiveStore';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { onMounted, onUnmounted, computed, onBeforeMount } from 'vue';
 import { useAuth0 } from '@auth0/auth0-vue';
+import { useUserStore } from './stores/userStore';
 
 import Sidebar from '@/components/sidebar/Sidebar.vue';
 import BottomNavbar from './components/bottom-navbar/BottomNavbar.vue';
@@ -25,11 +33,26 @@ export default {
     const responsive = useResponsiveStore();
     responsive.updateSize(window.innerWidth);
     const route = useRoute();
+    const router = useRouter();
     const auth0 = useAuth0();
+    const user = useUserStore();
+    const isAuthenticated = auth0.isAuthenticated;
+    
+    onBeforeMount(async () => {
+      if(!isAuthenticated.value) {
+        await user.login();
 
-    onBeforeMount(() => {
-      auth0.getAccessTokenSilently();
-    })
+        if(isAuthenticated.value && auth0.user.value != null) {
+          const profile = await user.profile;
+
+          if (profile.value != null && !profile.value.is_onboarded) {
+            router.push('/onboarding');
+          } else {
+            router.push('/dashboard');
+          }
+        }
+      }
+    });
 
     onMounted(() => {
       window.addEventListener("resize", onWindowResizeHandler)
@@ -45,10 +68,10 @@ export default {
 
     return {
       showSidebar: computed(() => {
-        return !responsive.isMobile && route.path !== '/login'
+        return !responsive.isMobile && route.meta.showNav && isAuthenticated.value
       }),
       showBottomNavBar: computed(() => {
-        return responsive.isMobile && route.path !== '/login'
+        return responsive.isMobile && route.meta.showNav && isAuthenticated.value
       })
     }
   }
@@ -58,6 +81,7 @@ export default {
 <style lang="scss">
 :root {
   --nav-background: rgb(21, 8, 0);
+  --app-background: rgba(255, 199, 8, 1);
 }
 
 body {
@@ -75,7 +99,23 @@ body {
   overflow: hidden;
   height: inherit;
   width: inherit;
-  background: rgba(255, 199, 8, 255);
-  display: flex;
+  background-color: rgba(255, 199, 8, 255);
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 1fr 64px;
+}
+
+.desktop {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 3;
+}
+
+.mobile {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 2;
 }
 </style>

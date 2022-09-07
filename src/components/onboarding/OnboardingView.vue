@@ -1,24 +1,24 @@
 <template>
   <section id="onboarding">
-    <template v-if="isMobile">
-
-    </template>
-    <template v-else>
-      
-    </template>
+    <OnboardingMobile></OnboardingMobile>
   </section>
 </template>
 
 <script>
 export default {
-  name: 'OnboardingView'
+  name: 'OnboardingView',
 }
 </script>
 
 <script setup>
-import { useResponsiveStore } from '@/stores/responsiveStore';
+// import { toRefs } from 'vue';
 
-const { isMobile } = useResponsiveStore().isMobile;
+// import OnboardingDesktop from './OnboardingDesktop.vue';
+import OnboardingMobile from './OnboardingMobile/OnboardingMobile.vue';
+// import { useResponsiveStore } from '@/stores/responsiveStore';
+// import { ref } from 'vue';
+
+// const { isMobile } = toRefs(useResponsiveStore());
 </script>
 
 <style lang="scss">
