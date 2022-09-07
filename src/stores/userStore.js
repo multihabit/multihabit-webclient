@@ -53,5 +53,5 @@ export const useUserStore = defineStore('userStore', () => {
     } while (attempts < 3 && tryAgain)
   }
 
-  return { login, profile, token }
+  return { login, getUserProfile, profile, token }
 });

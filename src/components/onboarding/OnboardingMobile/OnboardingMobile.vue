@@ -31,11 +31,13 @@
   import { ref, inject } from 'vue';
   import { useAuth0 } from '@auth0/auth0-vue';
   import { useRouter } from 'vue-router';
+  import { useUserStore } from '@/stores/userStore';
 
   const axios = inject('axios');
   const auth0 = useAuth0();
   const token = await auth0.getAccessTokenSilently();
   const router = useRouter();
+  const user = useUserStore();
 
   let selection = ref('words-writer');
   const options = [
@@ -65,6 +67,7 @@
       })
 
       if (result.status === 200) {
+        await user.getUserProfile();
         router.push('/dashboard');
       }
     } catch (error) {
