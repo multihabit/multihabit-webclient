@@ -35,7 +35,7 @@ export const useUserStore = defineStore('userStore', () => {
 
     do {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_ENDPOINT}/users/${id}`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_ENDPOINT}/users/${encodeURI(id)}`, {
           headers: {
             'Authorization': `Bearer ${token.value}`
           }
