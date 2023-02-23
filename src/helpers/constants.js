@@ -3,5 +3,10 @@ export const Constants = {
     'time-writer': "Writer (Time)",
     'words-writer': "Writer (Words)",
     'non-writer': 'Non-Writer'
+  },
+  HABIT_CATEGORIES: {
+    'professional': "Professional/Business",
+    'self-improvement': "Self-Improvement",
+    'leisure': "Leisure/Recreation"
   }
 }

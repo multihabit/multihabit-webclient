@@ -6,6 +6,7 @@
       :to="link.path"
       :icon="link.icon"
       >{{link.label}}</sidebar-link>
+    <button id="logout" @click="logout">Logout</button>
   </aside>
 </template>
 
@@ -19,6 +20,13 @@ export default {
 
 <script setup>
 import { NavLinks } from '@/helpers/navlinks';
+import { useAuth0 } from '@auth0/auth0-vue';
+
+const auth0 = useAuth0();
+
+function logout() {
+  auth0.logout({returnTo: window.location.origin});
+}
 </script>
 
 <style lang="scss">
@@ -32,5 +40,9 @@ aside {
   grid-column-end: 2;
   grid-row-start: 1;
   grid-row-end: 3;
+
+  .logout {
+    align-self: flex-end;
+  }
 }
 </style>
