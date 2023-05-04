@@ -45,7 +45,14 @@ console.log(props.habits);
 .habits-panel {
 
   .habits-container {
-    padding: 0px 30px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, min(175px,45vw));
+    grid-auto-rows: min(175px,45vw);
+    column-gap: 4vw;
+    row-gap: 4vw;
+    padding: 0px 3vw;
+    box-sizing: border-box;
   }
 
   &:last-child {

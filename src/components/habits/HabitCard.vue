@@ -21,6 +21,7 @@ export default {
 
 <script setup>
 import { defineEmits, defineProps, computed, ref, nextTick } from 'vue';
+import { calculateInputVal } from '@/helpers/util';
 
 const emits = defineEmits(['updated']);
 const inputField = ref(null);
@@ -44,15 +45,11 @@ const display = computed(() => {
     label: 'Words'
   };
 
-  if (props.tracking_mode !== 'words-writer') {
+  if (props.habit.label !== 'Writing' || props.tracking_mode !== 'words-writer') {
     let display = [];
     result.label = '';
-    if (value.value >= 3600) {
-      display.push(Math.floor(value.value/3600));
-      result.label += 'HH:';
-    }
-    display.push(Math.floor((value.value%3600)/60));
-    display.push(Math.floor((value.value%3600)%60))
+    display.push(Math.floor(value.value/60));
+    display.push(Math.floor(value.value%60))
     result.label += 'MM:SS'
     result.value = display.map((i) => i.toString().padStart(2,'0')).join(':');
   }
@@ -92,47 +89,12 @@ function emitUpdate(){
   document.activeElement.blur();
   isEditable.value = false;
 }
-
-function calculateInputVal(input, value) {
-  const regex = new RegExp(/^([+-]?)(\d+)(?::(\d{1,2}))?(?::(\d{1,2}))?$/);
-  let result;
-  let tmpVal;
-
-  let inputParts = input.match(regex);
-  inputParts.shift();
-  const modifier = inputParts.shift();
-  inputParts = inputParts.filter((i) => i !== undefined).map((i) => parseInt(i));
-
-  switch (inputParts.length) {
-    case 1:
-      tmpVal = inputParts[0];
-      break;
-    case 2:
-      tmpVal = inputParts[0]*60 + inputParts[1];
-      break;
-    case 3:
-      tmpVal = inputParts[0]*3600 + inputParts[1]*60 + inputParts[2];
-      break;
-  }
-
-  if (modifier) {
-    if (modifier == '+') {
-      result = Math.max(value.value + tmpVal,0);
-    } else if (modifier == '-') {
-      result = Math.max(value.value + (tmpVal*-1),0);
-    }
-  } else {
-    result = Math.max(tmpVal,0);
-  }
-
-  return result;
-}
 </script>
 
 <style lang="scss">
 .habit-wrapper {
-  height: 300px;
-  width: 300px;
+  height: 100%;
+  width: 100%;
   display: grid;
   grid-template-rows: 30px 2fr 30px;
   grid-template-columns: 1fr;
@@ -142,6 +104,7 @@ function calculateInputVal(input, value) {
   border-radius: 50%;
   border: 3px solid var(--nav-background);
   position: relative;
+  box-sizing: border-box;
 
   &:before {
     content: " ";

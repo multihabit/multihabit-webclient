@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { createPinia } from 'pinia';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed } from '@fortawesome/free-solid-svg-icons';
+import { faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed, faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
 
@@ -20,7 +20,7 @@ const auth0 = createAuth0({
 });
 
 const pinia = createPinia();
-library.add(faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed);
+library.add(faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed, faAngleLeft, faAngleRight);
 
 const routes = [
   {
@@ -56,16 +56,16 @@ const routes = [
     }
   },
   {
-    path: '/log',
+    path: '/log/:dateInteger?',
     name: 'Log',
     component: () => import('@/components/LogView.vue'),
     meta: {
       showNav: true
-    }
+    },
   },
   {
     path: '/leaderboard',
-    name: 'leaderboard',
+    name: 'Leaderboard',
     component: () => import('@/components/LeaderboardView.vue'),
     meta: {
       showNav: true
@@ -73,8 +73,16 @@ const routes = [
   },
   {
     path: '/onboarding',
-    name: 'onboarding',
+    name: 'Onboarding',
     component: () => import('@/components/onboarding/OnboardingView.vue'),
+    meta: {
+      showNav: true
+    }
+  },
+  {
+    path: '/dashboard/config',
+    name: 'Dashboard Config',
+    component: () => import('@/components/dashboard-config/DashboardConfigView.vue'),
     meta: {
       showNav: true
     }

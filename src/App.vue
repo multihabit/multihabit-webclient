@@ -4,7 +4,7 @@
     <router-view :class="{
       desktop: showSidebar,
       mobile: showBottomNavBar
-    }"/>
+    }" :key="$route.fullPath"/>
   </suspense>
   <bottom-navbar v-if="showBottomNavBar" />
 </template>
@@ -117,5 +117,6 @@ body {
   grid-column-end: 3;
   grid-row-start: 1;
   grid-row-end: 2;
+  padding-bottom: 94px;
 }
 </style>

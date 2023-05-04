@@ -8,5 +8,6 @@ export const Constants = {
     'professional': "Professional/Business",
     'self-improvement': "Self-Improvement",
     'leisure': "Leisure/Recreation"
-  }
+  },
+  
 }
