@@ -37,7 +37,7 @@ export const useUserStore = defineStore('userStore', () => {
   const config = computed(async () => {
     if (_config.value == null) {
       await _initConfig();
-      console.log("Grabbing config");
+      // console.log("Grabbing config");
       return _config;
     } else {
       return _config;
@@ -83,11 +83,76 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
+  async function updateConfig(config) {
+    if (_profile.value == null) {
+      await getUserProfile();
+    }
+    
+    const id = auth0.user.value.sub;
+
+    try {
+      const response = await axios.put(`${process.env.VUE_APP_API_ENDPOINT}/users/${encodeURI(id)}/config`, {
+          config,
+          owner: id,
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token.value}`
+          }
+        })
+    } catch (error) {
+      console.log(error);
+    }
+
+    _profile.value.config = config;
+    _config.value = config;
+
+    return _config.value;
+  }
+
   async function login() {
     try {
       token.value = await auth0.getAccessTokenSilently();
     } catch (error) {
       router.push('/login');
+    }
+  }
+
+  async function createHabit(label, category) {
+    const id = auth0.user.value.sub;
+
+    try {
+      const response = await axios.post(`${process.env.VUE_APP_API_ENDPOINT}/habits`, {
+        userID: id,
+        label,
+        category
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token.value}`
+        }
+      });
+
+      if (response != null) {
+        const { habit_id, label, category } = response.data.data;
+
+        if (_habits.value == null) {
+          await getHabits();
+        }
+
+        _habits.value[category][habit_id] = { habit_id, 
+          label, 
+          category 
+        }
+
+        if (_config.value == null) {
+          await _initConfig();
+        }
+
+        _config.value.habits[category].habits.push({id: habit_id, label});
+        
+        await updateConfig(_config.value);
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 
@@ -180,7 +245,7 @@ export const useUserStore = defineStore('userStore', () => {
       _entries.value[dateInteger][habit_id] = entry;
     }
 
-    console.log(habit);
+    // console.log(habit);
   }
 
   async function getUserProfile() {
@@ -327,5 +392,5 @@ export const useUserStore = defineStore('userStore', () => {
     return _entries.value[dateInteger][habit_id];
   }
 
-  return { login, getUserProfile, updateHabit, getEntry, getEntries, updateEntry, profile, habits, token, config }
+  return { login, getUserProfile, updateHabit, getEntry, getEntries, updateEntry, updateConfig, createHabit, profile, habits, token, config }
 });

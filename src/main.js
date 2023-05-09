@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { createPinia } from 'pinia';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed, faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
+import { faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed, faAngleLeft, faAngleRight, faSave, faBars, faXmark, faSquarePlus } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
 
@@ -20,7 +20,7 @@ const auth0 = createAuth0({
 });
 
 const pinia = createPinia();
-library.add(faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed, faAngleLeft, faAngleRight);
+library.add(faHouse, faSquarePollHorizontal, faTrophy, faChartSimple, faGear, faAngleDown, faFeatherPointed, faAngleLeft, faAngleRight, faSave, faBars, faXmark, faSquarePlus);
 
 const routes = [
   {
@@ -83,6 +83,14 @@ const routes = [
     path: '/dashboard/config',
     name: 'Dashboard Config',
     component: () => import('@/components/dashboard-config/DashboardConfigView.vue'),
+    meta: {
+      showNav: true
+    }
+  },
+  {
+    path: '/dashboard/test',
+    name: 'Test View',
+    component: () => import('@/components/Test.vue'),
     meta: {
       showNav: true
     }

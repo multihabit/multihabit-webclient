@@ -1,5 +1,6 @@
 <template>
   <mh-sidebar v-if="showSidebar" />
+  <mh-modal />
   <suspense>
     <router-view :class="{
       desktop: showSidebar,
@@ -18,6 +19,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { onMounted, onUnmounted, computed, onBeforeMount } from 'vue';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useUserStore } from './stores/userStore';
+import MHModal from './components/MHModal.vue';
 
 import Sidebar from '@/components/sidebar/Sidebar.vue';
 import BottomNavbar from './components/bottom-navbar/BottomNavbar.vue';
@@ -26,7 +28,8 @@ export default {
   name: 'App',
   components: {
     'mh-sidebar': Sidebar,
-    'bottom-navbar': BottomNavbar
+    'bottom-navbar': BottomNavbar,
+    'mh-modal': MHModal
   },
   setup() {
     const onWindowResizeHandler = debounce(onWindowResize);

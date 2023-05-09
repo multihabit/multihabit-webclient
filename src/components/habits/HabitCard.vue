@@ -93,10 +93,10 @@ function emitUpdate(){
 
 <style lang="scss">
 .habit-wrapper {
-  height: 100%;
   width: 100%;
+  aspect-ratio: 1/1;
   display: grid;
-  grid-template-rows: 30px 2fr 30px;
+  grid-template-rows: 10% 80% 10%;
   grid-template-columns: 1fr;
   flex-direction: column;
   justify-content: center;
