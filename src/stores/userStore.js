@@ -300,96 +300,63 @@ export const useUserStore = defineStore('userStore', () => {
     return _entries.value[dateInteger][habit_id];
   }
 
-  async function updateEntry(dateInteger, habit, value, note, isNewEntry) {
-    const nowInteger = getNowInteger();
-    const {habit_id, category} = habit;
-    let entry;
+  async function updateEntry(dateInteger, habit, mode, value, note) {
+    const { habit_id } = habit;
+    if (_entries.value == null || _entries.value[dateInteger] == null) {
+      const entries = await getEntries(dateInteger);
+      if (entries == null) {
+        _entries.value = {};
+      }
 
-    if(isNewEntry) {
-      entry = await _createEntry(dateInteger,habit_id,value, note)
-    } else {
-      entry = await _updateEntry(dateInteger,habit_id,value, note)
+      if (_entries.value[dateInteger] == null) {
+        _entries.value[dateInteger] = {};
+      }
+
+      if (_entries.value[dateInteger][habit_id] == null) {
+        _entries.value[dateInteger][habit_id] = {value: 0, note: ''}
+      }
     }
 
-    if (nowInteger === dateInteger) {
-      _habits.value[category][habit_id].activeEntry = entry;
-    }
-    
-    return entry;
-  }
+    const user = auth0.user.value.sub;
+    const year = parseInt(String(dateInteger).slice(0,4));
+    const month = parseInt(String(dateInteger).slice(4,6));
+    const day = parseInt(String(dateInteger).slice(6,8));
+    const entry = _entries.value[dateInteger][habit_id];
+    Object.assign(entry,{
+      habit_id, 
+      year, 
+      month, 
+      day, 
+      owner: user, 
+      dateInteger
+    });
 
-  /**
-   * 
-   */
-  async function _createEntry(dateInteger,habit_id,value = 0, note = '') {
-    const year = Math.floor(dateInteger/10000);
-    const month = Math.floor((dateInteger - year*10000)/100);
-    const day = dateInteger%100;
-    const owner = auth0.user.value.sub;
-    const entry = {
-      year,
-      month,
-      day,
-      value,
-      note,
-      dateInteger,
-      habit_id,
-      owner
-    }
-    
-    if (_entries.value[dateInteger]==null) {
-      _entries.value[dateInteger] = {};
+    if(value) {
+      if (entry.value) {
+        entry.value += value;
+      } else {
+        entry.value = value;
+      }
     }
 
-    _entries.value[dateInteger][habit_id] = entry;
+    if (note) {
+      entry.note = note;
+    }
 
     try {
-      const response = axios.post(`${process.env.VUE_APP_API_ENDPOINT}/entries`, {
-        userID: owner,
-        habitID: habit_id,
-        year: year,
-        month: month,
-        day: day,
-        value: value,
-        note: note
+      const response = await axios.put(`${process.env.VUE_APP_API_ENDPOINT}/user/${encodeURI(user)}/habit/${habit_id}/entry/${dateInteger}`, {
+        ...(value != null && {value}),
+        ...(note != null && {note}),
+        mode
       }, {
         headers: {
           'Authorization': `Bearer ${token.value}`
         }
       })
-    } catch (error) { 
-      console.error(err.message);
-      throw new Error(error);
-    }
-
-    return entry;
-  }
-
-  async function _updateEntry(dateInteger,habit_id,value, note) {
-    const user = auth0.user.value.sub;
-
-    if (value) {
-      _entries.value[dateInteger][habit_id].value = value;
-    }
-
-    if (note) {
-      _entries.value[dateInteger][habit_id].note = note;
-    }
-
-    try {
-      const response = axios.put(`${process.env.VUE_APP_API_ENDPOINT}/user/${encodeURI(user)}/habit/${habit_id}/entry/${dateInteger}`, {
-        ...(value != null && {value}),
-        ...(note != null && {note})
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token.value}`
-        }
-      });
-    } catch(error) {
+    } catch (error) {
       console.error(error.message);
       throw new Error(error);
     }
-    return _entries.value[dateInteger][habit_id];
   }
 
   return { login, getUserProfile, updateHabit, getEntry, getEntries, updateEntry, updateConfig, createHabit, profile, habits, token, config }

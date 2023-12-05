@@ -25,12 +25,12 @@ export default {
 </script>
 
 <script setup>
-import { reactive } from 'vue';
+import { ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import useModalStore from '@/stores/modalStore';
 
 const modal = useModalStore();
-const model = reactive({});
+const model = ref({});
 const { isOpen, payload, view, actions } = storeToRefs(modal);
 </script>
 

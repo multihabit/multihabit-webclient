@@ -2,12 +2,27 @@
   <div class="habit-wrapper" :id="habit.habit_id">
     <h3>{{ habit.label }}</h3>
     <div class="habit">
-      <div class="input value" ref="inputField" :id="`${habit.habit_id}-input`" @keydown.enter.prevent="emitUpdate" :contenteditable="isEditable">{{ display.value }}</div>
+      <div class="input value" ref="inputField" :id="`${habit.habit_id}-input`" @keydown.enter.prevent="saveEdited" :contenteditable="isEditable">{{ display.value }}</div>
       <span>{{ display.label }}</span>
       <hr />
-      <div class="buttons">
-        <button v-if="!isEditable" @click="toggleEditable">Edit</button>
-        <button v-if="isEditable" @click="emitUpdate">Save</button>
+      <div v-if="habit.label==='Writing' && tracking_mode==='words-writer'" class="words-writer buttons">
+        <button v-if="!isEditable" @click="toggleWordsEditable">Edit</button>
+        <button v-if="isEditable" @click="saveEditedWords">Save</button>
+        <button @click="updateEntry">Log</button>
+      </div>
+      <div v-else class="buttons">
+        <button v-if="!isEditable" class="start-timer-button" @click="startStopwatch">
+          <fa-icon :icon="['fas','play']" />
+        </button>
+        <button v-if="!isEditable" class="pause-timer-button" @click="stopwatch.pause()">
+          <fa-icon :icon="['fas','pause']" />
+        </button>
+        <button v-if="!isEditable" class="reset-timer-button" @click="stopwatch.reset()">
+          <fa-icon :icon="['fas','rotate-right']" />
+        </button>
+        <button v-if="!isEditable" class="edit-timer-value-button" @click="toggleTimerEditable">Edit</button>
+        <button v-if="isEditable" @click="saveEditedTimer">Save</button>
+        <button @click="updateEntry">Log</button>
       </div>
     </div>
   </div>
@@ -20,12 +35,18 @@ export default {
 </script>
 
 <script setup>
-import { defineEmits, defineProps, computed, ref, nextTick } from 'vue';
+import { defineProps, computed, ref, nextTick, watchEffect, /*watchEffect*/ } from 'vue';
+import { useStopwatch } from 'vue-timer-hook';
 import { calculateInputVal } from '@/helpers/util';
+import { useUserStore } from '@/stores/userStore';
+import { useModalStore } from '@/stores/modalStore';
+import { SavingModal } from '@/misc/SavingModal';
 
-const emits = defineEmits(['updated']);
 const inputField = ref(null);
 const isEditable = ref(false);
+const today = ref(null);
+const todayInteger = ref(null);
+const value = ref(0);
 const props = defineProps({
   habit: {
     type: Object,
@@ -36,8 +57,25 @@ const props = defineProps({
     required: true,
   }
 });
+const stopwatch = useStopwatch(0,false);
+const user = useUserStore();
+const modal = useModalStore();
 
-const value = computed(() => props.habit.activeEntry != null ? props.habit.activeEntry.value : 0);
+watchEffect(async () => {
+  if(stopwatch.isRunning){
+    const seconds = stopwatch.seconds.value;
+    stopwatchUpdateValue();
+
+    const now = new Date();
+    const nowInteger = now.getFullYear() * 1e4 + (now.getMonth()+1) * 100 + now.getDate();
+    if (today.value != null && nowInteger > todayInteger.value) {
+      await user.updateEntry(todayInteger.value,props.habit,'add',value.value);
+      updateToday();
+      value.value = 0;
+      stopwatch.reset();
+    }
+  }
+})
 
 const display = computed(() => {
   const result = {
@@ -57,14 +95,37 @@ const display = computed(() => {
   return result;
 });
 
-function toggleEditable() {
+function toggleWordsEditable() {
   isEditable.value = true;
   nextTick(() => inputField.value.focus());
 }
 
-function emitUpdate(){
+function toggleTimerEditable() {
+  stopwatch.pause();
+  isEditable.value = true;
+  nextTick(() => inputField.value.focus());
+}
+
+function startStopwatch() {
+  updateToday();
+  stopwatch.start();
+}
+
+function stopwatchUpdateValue() {
+  value.value = stopwatch.hours.value * 3600 + stopwatch.minutes.value * 60 + stopwatch.seconds.value;
+}
+
+function updateToday() {
+  if (today.value == null) {
+    today.value = new Date();
+    todayInteger.value = today.value.getFullYear() * 1e4 + (today.value.getMonth()+1) * 100 + today.value.getDate();
+  }
+}
+
+function saveEditedTimer() {
   const input = inputField.value.innerHTML;
   const regex = new RegExp(/^([+-]?)(\d+)(?::(\d{1,2}))?(?::(\d{1,2}))?$/);
+  let offsetVal = 0;
 
   if (regex.test(input)) {
     let inputParts = input.match(regex);
@@ -72,22 +133,55 @@ function emitUpdate(){
     const modifier = inputParts.shift();
     inputParts = inputParts.filter((i) => i !== undefined).map((i) => parseInt(i));
 
-    if(!(inputParts.length > 1 && props.tracking_mode === 'words-writer')) {
-      const inputVal = calculateInputVal(input,value);
-      
-      if (inputVal !== value.value) {
-        emits('updated',props.habit.habit_id,inputVal,props.habit.activeEntry == null);
-      } else {
-        inputField.value.innerHTML = display.value.value;
-      }
-    } else {
+    const inputVal = calculateInputVal(input, value);
+    if (value.value === inputVal) {
       inputField.value.innerHTML = display.value.value;
+    } else {
+      offsetVal = inputVal;
     }
   } else {
     inputField.value.innerHTML = display.value.value;
   }
   document.activeElement.blur();
   isEditable.value = false;
+  stopwatch.reset(value.value + offsetVal);
+}
+
+function saveEditedWords() {
+  const input = inputField.value.innerHTML;
+  const regex = new RegExp(/^([+-]?)(\d+)$/);
+  if (regex.test(input)) {
+    const inputParts = input.match(regex);
+    inputParts.shift();
+    const modifier = inputParts.shift();
+    const inputVal = parseInt(inputParts.shift());
+
+    if (modifier) {
+      value.value += parseInt(`${modifier}${inputVal}`);
+    } else {
+      value.value = inputVal;
+    }
+  } else {
+    inputField.value.innerHTML = display.value.value;
+  }
+  document.activeElement.blur();
+  isEditable.value = false;
+}
+
+function saveEdited() {
+  if (props.habit.label === 'Writing' && props.tracking_mode === 'words-writer') {
+    saveEditedWords();
+  } else {
+    saveEditedTimer();
+  }
+}
+
+async function updateEntry() {
+  modal.open(SavingModal,{},[]);
+  await user.updateEntry(todayInteger.value,props.habit,'add',value.value,null);
+  stopwatch.reset(0,false);
+  value.value = 0;
+  modal.close();
 }
 </script>
 
